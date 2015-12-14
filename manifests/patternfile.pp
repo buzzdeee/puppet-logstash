@@ -69,9 +69,16 @@ define logstash::patternfile (
 
   $patterns_dir = "${logstash::configdir}/patterns"
 
-  $filename_real = $filename ? {
-    ''      => inline_template('<%= @source.split("/").last %>'),
-    default => $filename
+  if @source {
+    $filename_real = $filename ? {
+      ''      => inline_template('<%= @source.split("/").last %>'),
+      default => $filename
+    }
+  } else {
+    $filename_real = $filename ? {
+      ''      => $name,
+      default => $filename
+    }
   }
 
   file { "${patterns_dir}/${filename_real}":
