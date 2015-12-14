@@ -11,12 +11,18 @@
 #   Puppet file resource of the pattern file ( puppet:// )
 #   Value type is string
 #   Default value: None
-#   This variable is required
+#   This variable, or the content variable is required.
+#
+# [*content*]
+#   Contents of the puppet file.
+#   Value type is string
+#   Default value: None
+#   This variable, or the source variable is required.
 #
 # [*filename*]
 #   if you would like the actual file name to be different then the source file name
 #   Value type is string
-#   This variable is optional
+#   This variable is optional.
 #
 #
 # === Examples
@@ -25,11 +31,17 @@
 #       source => 'puppet:///path/to/my/custom/pattern'
 #     }
 #
-#     or wil an other actual file name
+#     or with an other actual file name:
 #
 #     logstash::patternfile { 'mypattern':
 #       source   => 'puppet:///path/to/my/custom/pattern_v1',
 #       filename => 'custom_pattern'
+#     }
+#
+#     another example using the content parameter:
+#
+#     logstash::patternfile { 'mypattern':
+#       content   => "a pattern description put into the patternfile\n\tanother line",
 #     }
 #
 #
@@ -39,11 +51,21 @@
 # * Richard Pijnenburg <mailto:richard.pijnenburg@elasticsearch.com>
 #
 define logstash::patternfile (
-  $source,
+  $content = undef,
+  $source = undef,
   $filename = '',
 ){
 
-  validate_re($source, '^puppet://', 'Source must be from a puppet fileserver (begin with puppet://)' )
+  if !$content && !$source {
+    fail('logstash::patternfile: either "content" or "source" paramter required')
+  }
+  if $content && $source {
+    fail('logstash::patternfile: either "content" or "source" paramter required, but not both!')
+  }
+
+  if $source {
+    validate_re($source, '^puppet://', 'Source must be from a puppet fileserver (begin with puppet://)' )
+  }
 
   $patterns_dir = "${logstash::configdir}/patterns"
 
@@ -53,11 +75,12 @@ define logstash::patternfile (
   }
 
   file { "${patterns_dir}/${filename_real}":
-    ensure => 'file',
-    owner  => $logstash::logstash_user,
-    group  => $logstash::logstash_group,
-    mode   => '0644',
-    source => $source,
+    ensure  => 'file',
+    owner   => $logstash::logstash_user,
+    group   => $logstash::logstash_group,
+    mode    => '0644',
+    source  => $source,
+    content => $content,
   }
 
 }
