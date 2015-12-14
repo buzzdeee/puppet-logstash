@@ -56,10 +56,10 @@ define logstash::patternfile (
   $filename = '',
 ){
 
-  if !$content && !$source {
+  if !$content and !$source {
     fail('logstash::patternfile: either "content" or "source" paramter required')
   }
-  if $content && $source {
+  if $content and $source {
     fail('logstash::patternfile: either "content" or "source" paramter required, but not both!')
   }
 
