@@ -81,6 +81,19 @@ define logstash::patternfile (
     }
   }
 
+  $full_qualified_filename = "${patterns_dir}/${filename_real}"
+  $dirname = dirname($full_qualified_filename)
+  if $dirname != $patterns_dir {
+    if ! defined(File[$dirname]) {
+      file { "$dirname":
+        ensure => 'directory',
+        owner  => $logstash::logstash_user,
+        group  => $logstash::logstash_group,
+        mode   => '0755',
+      }
+    }
+  }
+
   file { "${patterns_dir}/${filename_real}":
     ensure  => 'file',
     owner   => $logstash::logstash_user,
